@@ -17,3 +17,6 @@
 #### Why It Matters
 <p>Parametric insurance — automatic payouts based on real-world data — is a proven $multi-billion market. </p>
 <p>Parachute is the first implementation powered entirely by an on-chain AI agent, removing every point of human trust and delay from the process.</p>
+
+### Architecture
+<image src="parachute_architecture.svg"/>
