@@ -11,7 +11,7 @@ contract InsurancePool {
         uint256 triggerPrice; // price at which the insurance will be triggered in wei
         uint256 payoutAmount; //amount to be paid out when the insurance is triggered in wei
         string tokenInsured; // token that is insured
-        uint256 insuranceCost; // cost of the insurance in wei
+        uint256 insuranceCost; // cost of the insurance in wei premium
         uint256 expiresAt; // timestamp when the insurance expires
         bool status; // status of the insurance (active or not)
     }
@@ -63,9 +63,12 @@ contract InsurancePool {
     ) external payable returns (bool) {
         if (policy.expiresAt <= block.timestamp) revert ExpiredTime();
         if (policy.payoutAmount <= 0) revert InvalidPayoutAmount();
+
+        uint256 policyTime = (policy.expiresAt - block.timestamp) / 1 hours;
         uint256 premium = calculatePremium(
             policy.payoutAmount,
-            policy.expiresAt
+          
+            policyTime
         );
         if (premium != policy.insuranceCost) revert IncorrectPremium();
         if (policy.triggerPrice <= 0) revert InvalidTriggerPrice();
@@ -89,11 +92,11 @@ contract InsurancePool {
             triggerPrice: policy.triggerPrice,
             payoutAmount: policy.payoutAmount,
             tokenInsured: policy.tokenInsured,
-            insuranceCost: policy.insuranceCost,
+            insuranceCost: premium,
             expiresAt: policy.expiresAt,
             status: true
         });
-
+     userPolicies[msg.sender].push(policyId);
         emit PolicyCreated(
             policyId,
             msg.sender,
@@ -112,9 +115,10 @@ contract InsurancePool {
      */
     function calculatePremium(
         uint256 payoutAmount,
-        uint256 PolicyDuration
+        uint256 policyDuration
     ) public view returns (uint256) {
-        return (payoutAmount * ratePerHour * PolicyDuration) / 10000;
+    
+        return (payoutAmount * ratePerHour * policyDuration) / 10000;
     }
 
     /**
@@ -169,4 +173,9 @@ contract InsurancePool {
         if (!success) revert TransferFailed();
         emit LiquidityWithdrawn(msg.sender, amount);
     }
+
+    function setTokenAddress(address _tokenAddress) external {
+        tokenAddress = _tokenAddress;
+    }
+
 }
