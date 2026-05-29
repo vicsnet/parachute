@@ -39,6 +39,8 @@ contract InsurancePool {
         uint256 payoutAmount
     );
 
+    event LiquidityDeposited(address indexed provider, uint256 amount);
+
     // errors
 
     error IncorrectPremium();
@@ -51,7 +53,7 @@ contract InsurancePool {
     error PolicyNotFound();
     error PolicyNotActive();
     error PolicyExpired();
-    error TriggerNotMet(); 
+    error TriggerNotMet();
 
     /**
      * @notice Insure Asset by adding it to the insurance  pool.
@@ -139,5 +141,18 @@ contract InsurancePool {
 
         emit PolicyClaimed(policyId, policy.user, policy.payoutAmount);
     }
-}
 
+    /**
+     * owner deposit tokens to the insurance pool to ensure there are enough funds to pay out claims
+     */
+
+    function depositLiquidity(uint256 amount) external {
+        bool success = IERC20(tokenAddress).transferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
+        if (!success) revert TransferFailed();
+        emit LiquidityDeposited(msg.sender, amount);
+    }
+}
