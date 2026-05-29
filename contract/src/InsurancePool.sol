@@ -40,7 +40,7 @@ contract InsurancePool {
     );
 
     event LiquidityDeposited(address indexed provider, uint256 amount);
-
+    event LiquidityWithdrawn(address indexed provider, uint256 amount);
     // errors
 
     error IncorrectPremium();
@@ -147,6 +147,9 @@ contract InsurancePool {
      */
 
     function depositLiquidity(uint256 amount) external {
+        if (IERC20(tokenAddress).allowance(msg.sender, address(this)) < amount)
+            revert IncorrectPremium();
+
         bool success = IERC20(tokenAddress).transferFrom(
             msg.sender,
             address(this),
@@ -154,5 +157,16 @@ contract InsurancePool {
         );
         if (!success) revert TransferFailed();
         emit LiquidityDeposited(msg.sender, amount);
+    }
+
+    /**
+     * owner can withdraw funds from the insurance pool
+     */
+
+    function withdrawLiquidity(uint256 amount) external {
+        if (IERC20(tokenAddress).balanceOf(address(this)) < amount) revert TransferFailed();
+        bool success = IERC20(tokenAddress).transfer(msg.sender, amount);
+        if (!success) revert TransferFailed();
+        emit LiquidityWithdrawn(msg.sender, amount);
     }
 }
