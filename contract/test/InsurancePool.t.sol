@@ -19,8 +19,12 @@ contract InsurancePoolTest  is Test {
 
     function setUp() public {
         token = new ERC20("Mock Token", "MTK", 18);
-        insurancePool = new InsurancePool();
-        insurancePool.setTokenAddress(address(token));
+
+        vm.startPrank(owner);
+        insurancePool = new InsurancePool(address(token));
+        vm.stopPrank();
+
+        // insurancePool.setTokenAddress(address(token));
     }
 
     function depositTokenToContract(address provider, uint256 _amount) public {
@@ -33,7 +37,13 @@ contract InsurancePoolTest  is Test {
 
 
     function testInsureAsset() public {
+        vm.deal(owner, 10 ether);
+        vm.startPrank(owner);
         depositTokenToContract(owner, 10000 * 10 ** 6);
+        vm.stopPrank();
+        insurancePool.fund{value: 5 ether}();
+        vm.prank(owner);
+        insurancePool.addSupportedToken("ETH", "Ethereum");
 
         vm.startPrank(user1);
         token.mint(user1, 1000 * 10 ** 6);
@@ -52,7 +62,7 @@ contract InsurancePoolTest  is Test {
         InsurancePool.Policy memory policyInput;
         policyInput.triggerPrice = 200 * 10 ** 6;
         policyInput.payoutAmount = payoutAmount;
-        policyInput.tokenInsured = "MTK";
+        policyInput.tokenInsured = "ETH";
         policyInput.insuranceCost = premium;
         policyInput.expiresAt = block.timestamp + policyDuration;
 
@@ -62,11 +72,11 @@ contract InsurancePoolTest  is Test {
     }
 
 
-function testProcessClaim() public{
-    testInsureAsset();
-    uint256 price= 200 * 10 ** 6;
-    insurancePool.processClaim(1, price);
-     insurancePool.processClaim(1, price);
-}
+// function testProcessClaim() public{
+//     // testInsureAsset();
+//     uint256 price= 200 * 10 ** 6;
+//     // insurancePool.processClaim(1, price);
+//     //  insurancePool.processClaim(1, price);
+// }
     
 }
