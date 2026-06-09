@@ -92,8 +92,6 @@ contract InsurancePool {
     error UnsupportedToken();
     error NotOwner();
 
-  
-
     constructor(address _tokenAddress) {
         tokenAddress = _tokenAddress;
         owner = msg.sender;
@@ -210,8 +208,8 @@ contract InsurancePool {
     function addSupportedToken(
         string calldata tokenSymbol,
         string calldata coinGeckoId
-    ) external  {
-         _onlyOwner();
+    ) external {
+        _onlyOwner();
         tokenToCoinGeckoId[tokenSymbol] = coinGeckoId;
     }
 
@@ -222,6 +220,12 @@ contract InsurancePool {
         return bytes(tokenToCoinGeckoId[tokenSymbol]).length > 0;
     }
 
+    function getUserPolicies(
+        address user
+    ) external view returns (uint256[] memory) {
+        return userPolicies[user];
+    }
+    
     // get supported token's CoinGecko ID
     function getCoinGeckoId(
         string calldata tokenSymbol
@@ -230,12 +234,12 @@ contract InsurancePool {
     }
 
     function setRatePerHour(uint256 newRate) external {
-         _onlyOwner();
+        _onlyOwner();
         ratePerHour = newRate;
     }
 
-    function withdraw(uint256 amount) external  {
-            _onlyOwner();
+    function withdraw(uint256 amount) external {
+        _onlyOwner();
         if (address(this).balance < amount) revert TransferFailed();
         (bool success, ) = payable(owner).call{value: amount}("");
         if (!success) revert TransferFailed();
@@ -248,7 +252,7 @@ contract InsurancePool {
      * owner can withdraw funds from the insurance pool
      */
 
-    function withdrawLiquidity(uint256 amount) external  {
+    function withdrawLiquidity(uint256 amount) external {
         _onlyOwner();
         if (IERC20(tokenAddress).balanceOf(address(this)) < amount)
             revert TransferFailed();
@@ -257,8 +261,8 @@ contract InsurancePool {
         emit LiquidityWithdrawn(msg.sender, amount);
     }
 
-    function setTokenAddress(address _tokenAddress) external  {
-         _onlyOwner();
+    function setTokenAddress(address _tokenAddress) external {
+        _onlyOwner();
         tokenAddress = _tokenAddress;
     }
 

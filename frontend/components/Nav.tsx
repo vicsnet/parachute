@@ -2,6 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 
 export function Nav() {
   const pathname = usePathname()
@@ -13,15 +14,16 @@ export function Nav() {
   ]
 
   return (
-    <nav className=" pt-10 border-b border-[#1e2832] bg-[#080b0f] mb-4">
-      <div className=" flex items-center justify-between px-8 py-8 md:px-10">
+    <nav className=" border-b border-[#1e2832] bg-[#080b0f] mb-20 pb-10">
+      <div className="container flex items-center justify-between px-4 py-4 md:px-10">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 md:w-9 md:h-9 bg-[#00e5a0] rounded-xl flex items-center justify-center text-lg">
             🪂
           </div>
           <span className="text-xl md:text-2xl font-black tracking-tight">
-            <span className="text-white">Para</span><span className="text-[#00e5a0]">chute</span>
+            <span className="text-white">Para</span>
+            <span className="text-[#00e5a0]">chute</span>
           </span>
         </div>
 
@@ -40,17 +42,14 @@ export function Nav() {
           ))}
         </div>
 
-        {/* Desktop wallet button */}
-        <button className="hidden md:block bg-[#00e5a0] text-black font-mono text-xs font-bold px-14 py-4
-        h-10 rounded-xl hover:bg-[#00b87a] transition-colors">
-          Connect Wallet
-        </button>
+        {/* Desktop connect button */}
+        <div className="hidden md:block">
+          <ConnectButton />
+        </div>
 
-        {/* Mobile: wallet + hamburger */}
+        {/* Mobile: connect + hamburger */}
         <div className="flex items-center gap-3 md:hidden">
-          <button className="bg-[#00e5a0] text-black font-mono text-xs font-bold px-3 py-2 rounded-lg hover:bg-[#00b87a] transition-colors">
-            Connect
-          </button>
+          <ConnectButton />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex flex-col gap-1.5 p-2"

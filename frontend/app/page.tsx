@@ -1,12 +1,14 @@
 "use client"
 import { PolicyCard, type Policy } from "@/components/PolicyCard"
 import { InsureForm } from "@/components/InsureForm"
+import { useAccount, useReadContract, useReadContracts } from "wagmi"
+import { insurancePoolConfig } from "@/lib/contractAddress"
 
-const DUMMY_POLICIES: Policy[] = [
-  { id: 42, tokenInsured: "ETH", tokenName: "Ethereum", triggerPrice: "$2,000", payoutAmount: "$300", insuranceCost: "$5.76", timeLeft: "2d 14h left", progress: 40, status: "Active" },
-  { id: 38, tokenInsured: "BTC", tokenName: "Bitcoin", triggerPrice: "$60,000", payoutAmount: "$500", insuranceCost: "$9.60", timeLeft: "Pending", progress: 70, status: "Pending" },
-  { id: 31, tokenInsured: "ETH", tokenName: "Ethereum", triggerPrice: "$1,800", payoutAmount: "$200", insuranceCost: "$3.84", timeLeft: "Paid out 3d ago", progress: 100, status: "Claimed" },
-]
+// const DUMMY_POLICIES: Policy[] = [
+//   { id: 42, tokenInsured: "ETH", tokenName: "Ethereum", triggerPrice: "$2,000", payoutAmount: "$300", insuranceCost: "$5.76", timeLeft: "2d 14h left", progress: 40, status: "Active" },
+//   { id: 38, tokenInsured: "BTC", tokenName: "Bitcoin", triggerPrice: "$60,000", payoutAmount: "$500", insuranceCost: "$9.60", timeLeft: "Pending", progress: 70, status: "Pending" },
+//   { id: 31, tokenInsured: "ETH", tokenName: "Ethereum", triggerPrice: "$1,800", payoutAmount: "$200", insuranceCost: "$3.84", timeLeft: "Paid out 3d ago", progress: 100, status: "Claimed" },
+// ]
 
 const PRICES = [
   { symbol: "ETH", name: "Ethereum", bg: "rgba(98,126,234,0.25)", color: "#8fa8f8", price: "$2,418.50", change: "+2.4%", positive: true },
@@ -19,11 +21,52 @@ const ACTIVITY = [
   { color: "#ff4d6a", text: "Policy #0031 claimed", sub: "— ETH dropped to $1,792 below $1,800. $200 USDT sent", time: "3d ago" },
 ]
 
+function mapPolicy(raw: any): Policy | null {
+  if (!raw) return null
+  const data = Array.isArray(raw) ? raw : Object.values(raw)
+  return {
+    user: data[0],
+    triggerPrice: data[1],
+    payoutAmount: data[2],
+    tokenInsured: data[3],
+    insuranceCost: data[4],
+    expiresAt: data[5],
+    status: data[6],
+  }
+}
 export default function Dashboard() {
+  const { address } = useAccount()
+
+  const { data: getUserPolicies } = useReadContract({
+    ...insurancePoolConfig,
+    functionName: 'getUserPolicies',
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  })
+
+  const { data: policiesData } = useReadContracts({
+    contracts: (getUserPolicies ?? []).map((id) => ({
+      ...insurancePoolConfig,
+      functionName: 'policies',
+      args: [id],
+    })),
+    query: { enabled: !!getUserPolicies && getUserPolicies.length > 0 }
+  })
+
+  // const policies: Policy[] = policiesData?.map((p) => p.result as unknown as Policy).filter(Boolean) ?? []
+
+  const policies: Policy[] = (policiesData ?? [])
+  .map((p) => {
+    console.log("raw result:", p.result) // ← add this
+    return mapPolicy(p.result)
+  })
+  .filter((p): p is Policy => p !== null)
+  console.log("User policies:", policies)
   return (
-    <div className="mt-20 px-4 py-6 md:px-10 md:py-8">
+    <div className="px-4 pt-20 py-10 md:px-10 md:py-8">
+
       {/* Stats — 2 cols on mobile, 4 on desktop */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8 mt-[50px]">
+      <div className="pt-4 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8 ">
         {[
           { label: "Pool Balance", value: "$284,500", green: true },
           { label: "Active Policies", value: "1,247", green: false },
@@ -69,27 +112,21 @@ export default function Dashboard() {
           {/* Policies */}
           <div>
             <div className="text-xs font-mono tracking-widest uppercase text-[#5a7080] mb-3 font-medium">My policies</div>
-            <div className="flex flex-col gap-3 md:gap-4">
-              {DUMMY_POLICIES.map((p) => <PolicyCard key={p.id} policy={p} />)}
+            <div className="flex flex-col gap-3">
+              {policies && policies.length > 0 ? (
+                policies.map((p, index) => (
+                  <PolicyCard key={index} policy={p} />
+                ))
+              ) : (
+                <div className="bg-[#0d1117] border border-[#1e2832] rounded-xl p-8 text-center text-[#5a7080] text-sm">
+                  No policies yet
+                </div>
+              )}
             </div>
           </div>
 
           {/* Activity */}
-          <div>
-            <div className="text-xs font-mono tracking-widest uppercase text-[#5a7080] mb-3 font-medium">Agent activity</div>
-            <div className="bg-[#0d1117] border border-[#1e2832] rounded-2xl overflow-hidden">
-              {ACTIVITY.map((item, i) => (
-                <div key={i} className={`flex items-start gap-3 md:gap-4 px-4 py-4 md:px-6 md:py-5 ${i < ACTIVITY.length - 1 ? "border-b border-[#1e2832]" : ""}`}>
-                  <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full mt-1.5 shrink-0" style={{ background: item.color }} />
-                  <div className="flex-1 text-xs md:text-sm leading-relaxed min-w-0">
-                    <span className="text-white font-bold">{item.text}</span>
-                    <span className="text-[#5a7080]"> {item.sub}</span>
-                  </div>
-                  <span className="text-xs font-mono text-[#3a5060] whitespace-nowrap pt-0.5">{item.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        
         </div>
 
         {/* Form — below content on mobile, side panel on desktop */}
