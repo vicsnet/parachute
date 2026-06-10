@@ -18,6 +18,7 @@ import {
   QueryClientProvider,
   QueryClient,
 } from "@tanstack/react-query";
+import { Toaster } from "sonner";
 
 
 const metadata: Metadata = {
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <Nav />
         <main className="">{children}</main>
+        <Toaster/>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

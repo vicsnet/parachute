@@ -3,7 +3,7 @@ import {INSURANCE_ABI} from "./insuranceAbi";
 
 export const erc20Token = "0x7Bd0E4FD28C3226e53670A34B57eb8Ae8b06a622";
 
-export const insurancePoolAddress = "0x11a16d062191f176a2Cf7aBA0D8Fd1402249Ab06";
+export const insurancePoolAddress = "0xde158184f7DadcDCAb9C2584c2c720aE10E53D48";
 
 export const insurancePoolConfig = {
   address:  insurancePoolAddress,

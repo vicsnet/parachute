@@ -24,6 +24,7 @@ contract InsurancePool {
         string tokenInsured; // token that is insured
         uint256 insuranceCost; // cost of the insurance in wei premium
         uint256 expiresAt; // timestamp when the insurance expires
+        uint256 policyId;
         PolicyStatus status; // status of the insurance (active or not)
     }
 
@@ -99,7 +100,7 @@ contract InsurancePool {
     /**
      * @notice Insure Asset by adding it to the insurance  pool.
      */
-    function insureAsset(Policy calldata policy) external returns (bool) {
+    function insureAsset(Policy calldata policy) external returns (uint256) {
         if (!isTokenSupported(policy.tokenInsured)) revert UnsupportedToken();
         if (policy.expiresAt <= block.timestamp) revert ExpiredTime();
         if (policy.payoutAmount <= 0) revert InvalidPayoutAmount();
@@ -126,6 +127,7 @@ contract InsurancePool {
         if (!success) revert TransferFailed();
 
         uint256 policyId = policyCount + 1;
+        policyCount = policyId;
 
         policies[policyId] = Policy({
             user: msg.sender,
@@ -133,6 +135,7 @@ contract InsurancePool {
             payoutAmount: policy.payoutAmount,
             tokenInsured: policy.tokenInsured,
             insuranceCost: premium,
+            policyId: policyId,
             expiresAt: policy.expiresAt,
             status: PolicyStatus.Pending
         });
@@ -151,7 +154,7 @@ contract InsurancePool {
             policy.expiresAt
         );
 
-        return true;
+        return requestId;
     }
 
     /**

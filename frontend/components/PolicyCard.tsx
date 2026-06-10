@@ -1,5 +1,11 @@
 "use client"
 
+import { insurancePoolConfig } from "@/lib/contractAddress"
+import { INSURANCE_ABI } from "@/lib/insuranceAbi"
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi"
+import { toast } from "sonner"
+import { useEffect } from "react"
+
 export type PolicyStatus = 0 | 1 | 2 | 3
 
 export interface Policy {
@@ -9,6 +15,7 @@ export interface Policy {
   tokenInsured: string
   insuranceCost: bigint
   expiresAt: bigint
+  policyId: bigint
   status: PolicyStatus
 }
 
@@ -65,18 +72,61 @@ function progress(expiresAt: bigint): number {
 export function PolicyCard({ policy }: { policy: Policy }) {
   const tokenStyle = TOKEN_STYLES[policy.tokenInsured] ?? { bg: "#1e2832", color: "#e8edf3" }
 
+
+
+  const {
+    data: hashPolicy,
+    isPending: policyPending,
+    writeContract: checkMyPolicy
+  } = useWriteContract()
+
+  const { isSuccess: checkApproveConfirmed, isPending } = useWaitForTransactionReceipt({
+    hash: hashPolicy,
+    query: { enabled: !!hashPolicy },
+  })
+
+  const checkPolicy = async () => {
+    try {
+      console.log('cliked')
+      await checkMyPolicy({
+        address: insurancePoolConfig.address,
+        abi: INSURANCE_ABI,
+        functionName: 'checkPolicy',
+        args: [BigInt(Number(policy.policyId))]
+      })
+      // console.
+
+      console.log('checkApproveConfirmed', hashPolicy)
+    } catch (error) {
+
+    }
+  }
+
+  useEffect(() => {
+    if (policyPending){
+      toast.success("loading")
+    }
+    if(checkApproveConfirmed){
+      toast.success("Policy still active")
+    }
+    if(isPending){
+      toast.loading("confirming Transation")
+    }
+  }, [policyPending, checkApproveConfirmed, isPending])
+  console.log(policyPending, isPending)
+
   return (
     <div className={`rounded-2xl p-4 md:p-6 transition-all ${policy.status === 1
-        ? "bg-[#0d1520] border border-[#00e5a0]/25 shadow-[0_0_20px_rgba(0,229,160,0.05)]"
-        : policy.status === 0
-          ? "bg-[#0d1117] border border-[#f5a623]/20"
-          : "bg-[#0d1117] border border-[#1e2832]"
+      ? "bg-[#0d1520] border border-[#00e5a0]/25 shadow-[0_0_20px_rgba(0,229,160,0.05)]"
+      : policy.status === 0
+        ? "bg-[#0d1117] border border-[#f5a623]/20"
+        : "bg-[#0d1117] border border-[#1e2832]"
       }`}>
-     
+
       {/* Top */}
       <div className="flex items-center justify-between mb-4 md:mb-5">
         <div className="flex items-center gap-3">
-          
+
           <div
             className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs font-bold font-mono"
             style={{ background: tokenStyle.bg, color: tokenStyle.color }}
@@ -85,7 +135,8 @@ export function PolicyCard({ policy }: { policy: Policy }) {
           </div>
           <div>
             <div className="font-bold text-sm md:text-base text-white">{policy.tokenInsured === "ETH" ? "Ethereum" : policy.tokenInsured === "BTC" ? "Bitcoin" : policy.tokenInsured}</div>
-             <div className="text-xs text-[#5a7080] font-mono">ID: {policy.user.slice(0, 6)}...{policy.user.slice(-4)}</div>
+            <div className="text-xs text-[#5a7080] font-mono">ID: {policy.user.slice(0, 6)}...{policy.user.slice(-4)}</div>
+            <div className="text-xs text-[#5a7080] font-mono">PolicyID: 0#{Number(policy.policyId)}</div>
           </div>
         </div>
         <span className={`text-xs font-mono font-bold px-2.5 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1.5 ${STATUS_STYLES[policy.status]}`}>
@@ -127,8 +178,10 @@ export function PolicyCard({ policy }: { policy: Policy }) {
           />
         </div>
         {policy.status === 1 && (
-          <button className="text-xs font-mono font-bold px-3 py-1.5 md:px-4 md:py-2 border border-[#253040] rounded-xl text-[#a0b4c0] hover:border-[#00e5a0] hover:text-[#00e5a0] transition-colors whitespace-nowrap">
-            Check
+          <button onClick={checkPolicy}
+            className={`text-xs font-mono font-bold px-3 py-1.5 md:px-4 md:py-2 border rounded-xl whitespace-nowrap transition-colors pointer
+  `}>
+            Check Policy
           </button>
         )}
         {policy.status === 2 && (

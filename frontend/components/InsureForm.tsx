@@ -13,6 +13,7 @@ export interface Policy {
   tokenInsured: string,
   insuranceCost: bigint,
   expiresAt: bigint,
+  policyId: bigint,
   status: 0,
 }
 
@@ -63,7 +64,7 @@ export function InsureForm() {
 
   const durationInHours = BigInt(Number(duration))
 
-  const { isSuccess: tokenApproveConfirmed } = useWaitForTransactionReceipt({
+  const { isSuccess: tokenApproveConfirmed,  } = useWaitForTransactionReceipt({
     hash: hashTokenApprove,
     query: { enabled: !!hashTokenApprove },
   })
@@ -97,11 +98,12 @@ export function InsureForm() {
         tokenInsured: selectedToken,
         insuranceCost: premiumPrice as bigint,
         expiresAt: expiresAt,
+        policyId: BigInt(0),
         status: 0,
 
       }
 
-      console.log(premiumPrice)
+      console.log(policy)
       pendingPolicyRef.current = policy;
       await tokenApprove({
         address: erc20Config.address,

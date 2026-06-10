@@ -645,6 +645,11 @@ export const INSURANCE_ABI =[
             "type": "uint256"
           },
           {
+            "internalType": "uint256",
+            "name": "policyId",
+            "type": "uint256"
+          },
+          {
             "internalType": "enum InsurancePool.PolicyStatus",
             "name": "status",
             "type": "uint8"
@@ -658,9 +663,9 @@ export const INSURANCE_ABI =[
     "name": "insureAsset",
     "outputs": [
       {
-        "internalType": "bool",
+        "internalType": "uint256",
         "name": "",
-        "type": "bool"
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -787,6 +792,11 @@ export const INSURANCE_ABI =[
       {
         "internalType": "uint256",
         "name": "expiresAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "policyId",
         "type": "uint256"
       },
       {

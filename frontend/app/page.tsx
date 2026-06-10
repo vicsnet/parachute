@@ -31,7 +31,8 @@ function mapPolicy(raw: any): Policy | null {
     tokenInsured: data[3],
     insuranceCost: data[4],
     expiresAt: data[5],
-    status: data[6],
+    policyId: data[6],
+    status: data[7],
   }
 }
 export default function Dashboard() {
@@ -41,26 +42,30 @@ export default function Dashboard() {
     ...insurancePoolConfig,
     functionName: 'getUserPolicies',
     args: address ? [address] : undefined,
-    query: { enabled: !!address },
+    query: { enabled: !!address, refetchInterval: 5000 },
   })
+  
 
-  const { data: policiesData } = useReadContracts({
+  const { data: policiesData, refetch } = useReadContracts({
     contracts: (getUserPolicies ?? []).map((id) => ({
       ...insurancePoolConfig,
       functionName: 'policies',
       args: [id],
     })),
-    query: { enabled: !!getUserPolicies && getUserPolicies.length > 0 }
+    query: {
+       enabled: !!getUserPolicies && getUserPolicies.length > 0,
+       refetchInterval: 5000
+      }
   })
 
   // const policies: Policy[] = policiesData?.map((p) => p.result as unknown as Policy).filter(Boolean) ?? []
 
   const policies: Policy[] = (policiesData ?? [])
-  .map((p) => {
-    console.log("raw result:", p.result) // ← add this
-    return mapPolicy(p.result)
-  })
-  .filter((p): p is Policy => p !== null)
+    .map((p) => {
+      console.log("raw result:", p.result) // ← add this
+      return mapPolicy(p.result)
+    })
+    .filter((p): p is Policy => p !== null)
   console.log("User policies:", policies)
   return (
     <div className="px-4 pt-20 py-10 md:px-10 md:py-8">
@@ -85,7 +90,7 @@ export default function Dashboard() {
         <div className="flex flex-col gap-6 md:gap-8">
           {/* Live prices */}
           <div>
-            <div className="text-xs font-mono tracking-widest uppercase text-[#5a7080] mb-3 font-medium">Live prices</div>
+            <div className="text-xs font-mono tracking-widest uppercase text-[#5a7080] mb-3 pt-4 pb-4 font-medium">Live prices</div>
             <div className="flex flex-col gap-3">
               {PRICES.map((token) => (
                 <div key={token.symbol} className="flex items-center justify-between px-4 py-3.5 md:px-5 md:py-4 bg-[#0d1117] border border-[#1e2832] rounded-2xl hover:border-[#253040] transition-colors">
@@ -126,12 +131,12 @@ export default function Dashboard() {
           </div>
 
           {/* Activity */}
-        
+
         </div>
 
         {/* Form — below content on mobile, side panel on desktop */}
         <div>
-          <div className="text-xs font-mono tracking-widest uppercase text-[#5a7080] mb-3 font-medium">New policy</div>
+          <div className="text-xs font-mono tracking-widest uppercase text-[#5a7080] mb-3 pt-4 pb-4 font-medium">New policy</div>
           <InsureForm />
         </div>
       </div>
