@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <Nav />
         <main className="">{children}</main>
-        <Toaster/>
+        <Toaster richColors position="top-right"/>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

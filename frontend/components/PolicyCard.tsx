@@ -102,19 +102,19 @@ export function PolicyCard({ policy }: { policy: Policy }) {
     }
   }
 
-  useEffect(() => {
-    if (policyPending){
-      toast.success("loading")
-    }
-    if(checkApproveConfirmed){
-      toast.success("Policy still active")
-    }
-    if(isPending){
-      toast.loading("confirming Transation")
-    }
-  }, [policyPending, checkApproveConfirmed, isPending])
-  console.log(policyPending, isPending)
+ useEffect(() => {
+  const TOAST_ID = "policy-action-toast";
 
+
+   if (policyPending) {
+    toast.loading("Please sign the transaction in your wallet...", { id: TOAST_ID });
+  }
+
+  if (checkApproveConfirmed) {
+    toast.success("Policy status checked awaiting agent for decison", { id: TOAST_ID });
+  }
+  
+}, [policyPending, checkApproveConfirmed, isPending]);
   return (
     <div className={`rounded-2xl p-4 md:p-6 transition-all ${policy.status === 1
       ? "bg-[#0d1520] border border-[#00e5a0]/25 shadow-[0_0_20px_rgba(0,229,160,0.05)]"
